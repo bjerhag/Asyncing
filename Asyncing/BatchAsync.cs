@@ -8,14 +8,14 @@ namespace Asyncing
 {
     public static class BatchAsync
     {
-        public static async Task<IEnumerable<T>> ExecuteInBatchAsync<T, TY>(Func<IEnumerable<TY>, Task<IEnumerable<T>>> asyncCall, IEnumerable<TY> data, int batchSize)
+        public static async Task<IEnumerable<T>> ExecuteInBatchAsync<T, TY>(Func<TY, Task<IEnumerable<T>>> asyncCall, IEnumerable<TY> data, int batchSize)
         {
             var result = new List<T>();
             var batches = data.Batch(batchSize);
             foreach (var batch in batches)
             {
                 var batchList = batch.ToList();
-                var tasks = batchList.Select(b => asyncCall(batchList)).ToList();
+                var tasks = batchList.Select(b => asyncCall(b)).ToList();
                 await Task.WhenAll(tasks);
                 foreach (var task in tasks)
                 {
@@ -24,14 +24,14 @@ namespace Asyncing
             }
             return result;
         }
-        public static async Task<IEnumerable<T>> ExecuteInBatchAsync<T, TY>(Func<IEnumerable<TY>, Task<T>> asyncCall, IEnumerable<TY> data, int batchSize)
+        public static async Task<IEnumerable<T>> ExecuteInBatchAsync<T, TY>(Func<TY, Task<T>> asyncCall, IEnumerable<TY> data, int batchSize)
         {
             var result = new List<T>();
             var batches = data.Batch(batchSize);
             foreach (var batch in batches)
             {
                 var batchList = batch.ToList();
-                var tasks = batchList.Select(b => asyncCall(batchList)).ToList();
+                var tasks = batchList.Select(asyncCall).ToList();
                 await Task.WhenAll(tasks);
                 foreach (var task in tasks)
                 {
